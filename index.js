@@ -11,6 +11,7 @@ const documents = {};
 
 //endpoint to return documents with comments
 app.get("/documents", (req, res) => {
+  console.log("returning docs:", documents);
   res.send(documents);
 });
 
@@ -19,6 +20,7 @@ app.post("/event", (req, res) => {
   const { type, data } = req.body;
 
   console.log("Req Type is", type);
+  console.log("Data received is", data);
 
   if (type === "documentCreated") {
     const { id, title, content } = data;
@@ -26,13 +28,24 @@ app.post("/event", (req, res) => {
   }
 
   if (type === "commentCreated") {
-    const { id, commentText, documentId } = data;
+    const { id, commentText, status, documentId } = data;
     const document = documents[documentId];
 
-    document.comments.push({ id, commentText });
+    document.comments.push({ id, commentText, status });
   }
 
-  console.log("Document collection", documents);
+  if (type === "commentUpdated") {
+    const { id, commentText, status, documentId } = data;
+    const document = documents[documentId];
+    const comment = document.comments.find((comment) => {
+      return comment.id === id;
+    });
+
+    comment.status = status;
+    comment.commentText = commentText;
+  }
+
+  //console.log("Document collection", documents);
   res.send({});
 });
 
