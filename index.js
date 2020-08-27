@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const axios = require("axios");
 
 const app = express();
 app.use(bodyParser.json());
@@ -9,19 +10,7 @@ app.use(cors());
 //store all the documents
 const documents = {};
 
-//endpoint to return documents with comments
-app.get("/documents", (req, res) => {
-  console.log("returning docs:", documents);
-  res.send(documents);
-});
-
-//endpoint to receive incoming event requests
-app.post("/event", (req, res) => {
-  const { type, data } = req.body;
-
-  console.log("Req Type is", type);
-  console.log("Data received is", data);
-
+const handleEvent = (type, data) => {
   if (type === "documentCreated") {
     const { id, title, content } = data;
     documents[id] = { id, title, content, comments: [] };
@@ -44,11 +33,30 @@ app.post("/event", (req, res) => {
     comment.status = status;
     comment.commentText = commentText;
   }
+};
+
+//endpoint to return documents with comments
+app.get("/documents", (req, res) => {
+  res.send(documents);
+});
+
+//endpoint to receive incoming event requests
+app.post("/event", (req, res) => {
+  const { type, data } = req.body;
+
+  handleEvent(type, data);
 
   //console.log("Document collection", documents);
   res.send({});
 });
 
-app.listen(4002, () => {
+app.listen(4002, async () => {
   console.log("Listening on 4002");
+
+  const res = await axios.get("http://event-bus-srv:4005/events");
+
+  for (let event of res.data) {
+    console.log("Processing event:", event.type);
+    handleEvent(event.type, event.data);
+  }
 });
