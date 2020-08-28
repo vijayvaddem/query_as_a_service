@@ -44,9 +44,9 @@ app.get("/documents", (req, res) => {
 app.post("/event", (req, res) => {
   const { type, data } = req.body;
 
+  console.log("Event received for:", type);
   handleEvent(type, data);
-
-  //console.log("Document collection", documents);
+  console.log("Document collection", documents);
   res.send({});
 });
 
