@@ -12,18 +12,21 @@ const documents = {};
 
 const handleEvent = (type, data) => {
   if (type === "documentCreated") {
+    console.log("Handling event for documentCreated with data:", data);
     const { id, title, content } = data;
     documents[id] = { id, title, content, comments: [] };
   }
 
   if (type === "commentCreated") {
+    console.log("Handling event for commentCreated with data:", data);
     const { id, commentText, status, documentId } = data;
     const document = documents[documentId];
 
     document.comments.push({ id, commentText, status });
   }
 
-  if (type === "commentUpdated") {
+  if (type === "commentModerated") {
+    console.log("Handling event for commentModerated with data:", data);
     const { id, commentText, status, documentId } = data;
     const document = documents[documentId];
     const comment = document.comments.find((comment) => {
@@ -37,6 +40,7 @@ const handleEvent = (type, data) => {
 
 //endpoint to return documents with comments
 app.get("/documents", (req, res) => {
+  console.log("Sending docs list: ", documents);
   res.send(documents);
 });
 
@@ -53,7 +57,7 @@ app.post("/event", (req, res) => {
 app.listen(4002, async () => {
   console.log("Listening on 4002");
 
-  const res = await axios.get("http://event-bus-srv:4005/events");
+  const res = await axios.get("http://event-bus-svc:4005/events");
 
   for (let event of res.data) {
     console.log("Processing event:", event.type);
